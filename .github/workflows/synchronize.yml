@@ -1,0 +1,51 @@
+name: Synchronize
+on:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: write
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: mirror
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Configure Git
+      run: |
+        git config --local user.name 'github-actions[bot]'
+        git config --local user.email '<github-actions[bot]@users.noreply.github.com>'
+    - name: Copy files and tag versions
+      run: |
+        set -x
+        git clone https://github.com/actions/runner-images.git '${{ runner.temp }}/runner-images'
+        first_commit="$(git rev-list --max-parents=0 HEAD)"
+        last_commit="$(git log -1 --pretty=format:%H)"
+        if [ "$first_commit" = "$last_commit" ]; then
+          export last_commit_date=0
+        else
+          export last_commit_date="$(git log -1 --pretty=format:%ct)"
+        fi
+        git -C '${{ runner.temp }}/runner-images' for-each-ref --format '
+          if [ %(committerdate:unix) -gt "$last_commit_date" ]; then
+            git -C "${{ runner.temp }}/runner-images" show %(refname):images/macos/toolsets/toolset-13.json > toolset.json
+            git add toolset.json
+            env GIT_AUTHOR_NAME=%(authorname) \
+                GIT_AUTHOR_EMAIL=%(authoremail) \
+                GIT_AUTHOR_DATE=%(authordate) \
+                GIT_COMMITER_DATE=%(committerdate)
+                git commit --message %(refname:short) toolset.json
+            tag="$(jq --raw-output .xcode.versions[0].link toolset.json)"
+            git tag "$tag" 2>/dev/null \
+                && git push origin "$tag" \
+                && gh release create "$tag" --notes "Xcode $tag is available on GitHub Actions."
+          fi
+          true
+        ' --shell --sort=version:refname refs/tags/macOS-13 | sh -x
+        git push origin HEAD
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
