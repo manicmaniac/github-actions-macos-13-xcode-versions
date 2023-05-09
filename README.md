@@ -5,8 +5,6 @@ An unofficial partial mirror repository of [actions/runner-images](https://githu
 
 This repository is useful for tracking Xcode updates of macOS 13 image.
 
-:warning: Currently macOS 13 image has not been released yet so this repository has no releases for now.
-
 Usage examples
 --------------
 
