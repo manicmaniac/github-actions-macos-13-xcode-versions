@@ -37,7 +37,7 @@ jobs:
             env GIT_AUTHOR_NAME=%(authorname) \
                 GIT_AUTHOR_EMAIL=%(authoremail) \
                 GIT_AUTHOR_DATE=%(authordate) \
-                GIT_COMMITER_DATE=%(committerdate)
+                GIT_COMMITER_DATE=%(committerdate) \
                 git commit --message %(refname:short) toolset.json
             tag="$(jq --raw-output .xcode.versions[0].link toolset.json)"
             git tag "$tag" 2>/dev/null \
