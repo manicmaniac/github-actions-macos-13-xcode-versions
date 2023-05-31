@@ -39,10 +39,12 @@ jobs:
                 GIT_AUTHOR_DATE=%(authordate) \
                 GIT_COMMITER_DATE=%(committerdate) \
                 git commit --message %(refname:short) toolset.json
-            tag="$(jq --raw-output .xcode.versions[0].link toolset.json)"
-            git tag "$tag" 2>/dev/null \
-                && git push origin "$tag" \
-                && gh release create "$tag" --notes "Xcode $tag is available on GitHub Actions."
+            tag="$(jq --raw-output \".xcode | .x64 // . | .versions[0].link\" toolset.json)"
+            if [ "$tag" != null ]; then
+              git tag "$tag" 2>/dev/null \
+                  && git push origin "$tag" \
+                  && gh release create "$tag" --notes "Xcode $tag is available on GitHub Actions."
+            fi
           fi
           true
         ' --shell --sort=version:refname refs/tags/macOS-13 | sh -x
