@@ -37,7 +37,7 @@ jobs:
             env GIT_AUTHOR_NAME=%(authorname) \
                 GIT_AUTHOR_EMAIL=%(authoremail) \
                 GIT_AUTHOR_DATE=%(authordate) \
-                GIT_COMMITER_DATE=%(committerdate) \
+                GIT_COMMITTER_DATE=%(committerdate) \
                 git commit --message %(refname:short) toolset.json
             tag="$(jq --raw-output \".xcode | .x64 // . | .versions[0].link\" toolset.json)"
             if [ "$tag" != null ]; then
@@ -47,7 +47,7 @@ jobs:
             fi
           fi
           true
-        ' --shell --sort=version:refname refs/tags/macOS-13 | sh -x
+        ' --shell --sort=version:refname refs/tags/macos-13 | sh -x
         git push origin HEAD
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
