@@ -31,7 +31,7 @@ jobs:
           export last_commit_date="$(git log -1 --pretty=format:%ct)"
         fi
         git -C '${{ runner.temp }}/runner-images' for-each-ref --format '
-          if [ %(committerdate:unix) -gt "$last_commit_date" ] && git diff --name-only HEAD~ | grep -q "$TOOLSET_PATH"; then
+          if [ %(committerdate:unix) -gt "$last_commit_date" ] && git -C "${{ runner.temp }}/runner-images" diff --name-only %(refname) %(refname)~ | grep -q "$TOOLSET_PATH"; then
             git -C "${{ runner.temp }}/runner-images" show "%(refname):$TOOLSET_PATH" > toolset.json
             git add toolset.json
             env GIT_AUTHOR_NAME=%(authorname) \
